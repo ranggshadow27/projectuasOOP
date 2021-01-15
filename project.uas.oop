@@ -1,0 +1,262 @@
+Imports MySql.Data.MySqlClient
+Public Class Form1
+    Public conn As New MySql.Data.MySqlClient.MySqlConnection
+    Public cmd As MySqlCommand
+    Public dr As MySqlDataReader
+    Public da As MySqlDataAdapter
+    Public ds As DataSet
+    Public dt As DataTable
+
+    Public Sub koneksidatabase()
+        Dim strconn As String
+        Try
+            strconn = "Server=localhost;user=root;password=;database=uasproject"
+            If conn.State = ConnectionState.Open Then
+                conn.Close()
+            End If
+            conn.ConnectionString = strconn
+            conn.Open()
+        Catch ex As Exception
+            MsgBox(ex.Message)
+        End Try
+    End Sub
+
+    Public Sub tampilkanData()
+        Call koneksidatabase()
+        da = New MySqlDataAdapter("select productName, productCode, productCategory, productPrice from product", conn)
+        ds = New DataSet
+        da.Fill(ds, "product")
+        datagridDatabase.DataSource = ds.Tables("product")
+        datagridHome.DataSource = ds.Tables("product")
+    End Sub
+
+    Private Sub getData(productCode As String)
+        Dim reader As MySqlDataReader
+
+        Call koneksidatabase()
+        Dim sql_string As String = "SELECT * FROM product WHERE productCode= @productCode"
+        Dim cmd As New MySqlCommand(sql_string, conn)
+        cmd.Parameters.AddWithValue("@productCode", productCode)
+        reader = cmd.ExecuteReader()
+
+        While reader.Read()
+            nameTextBox.Text = reader("productName").ToString()
+            codeTextBox.Text = reader("productCode").ToString()
+            categoryTextBox.Text = reader("productCategory").ToString()
+            priceTextBox.Text = reader("productPrice").ToString()
+        End While
+    End Sub
+
+    Sub lockteks()
+        nameTextBox.Enabled = False
+        codeTextBox.Enabled = False
+        categoryTextBox.Enabled = False
+        priceTextBox.Enabled = False
+    End Sub
+
+    Sub aktifteks()
+        nameTextBox.Enabled = True
+        codeTextBox.Enabled = True
+        categoryTextBox.Enabled = True
+        priceTextBox.Enabled = True
+    End Sub
+
+    Sub hapusteks()
+        nameTextBox.Text = ""
+        codeTextBox.Text = ""
+        categoryTextBox.ResetText()
+        priceTextBox.Text = ""
+    End Sub
+
+    Sub datagrid()
+        Try
+            datagridDatabase.Columns(0).Width = 80
+            datagridDatabase.Columns(1).Width = 20
+            datagridDatabase.Columns(2).Width = 30
+            datagridDatabase.Columns(3).Width = 80
+            datagridDatabase.Columns(0).HeaderText = "Products"
+            datagridDatabase.Columns(1).HeaderText = "Code"
+            datagridDatabase.Columns(2).HeaderText = "Category"
+            datagridDatabase.Columns(3).HeaderText = "Price"
+
+            datagridHome.Columns(0).Width = 80
+            datagridHome.Columns(1).Width = 20
+            datagridHome.Columns(2).Width = 30
+            datagridHome.Columns(3).Width = 80
+            datagridHome.Columns(0).HeaderText = "Products"
+            datagridHome.Columns(1).HeaderText = "Code"
+            datagridHome.Columns(2).HeaderText = "Category"
+            datagridHome.Columns(3).HeaderText = "Price"
+        Catch ex As Exception
+        End Try
+    End Sub
+
+
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        koneksidatabase()
+        tampilkanData()
+        datagrid()
+
+        categoryTextBox.Items.Add("Processor")
+        categoryTextBox.Items.Add("Mainboard")
+        categoryTextBox.Items.Add("VGA Card")
+        categoryTextBox.Items.Add("RAM")
+
+    End Sub
+
+    Private Sub datagridDatabase_CellClick(sender As Object, e As DataGridViewCellEventArgs) Handles datagridDatabase.CellClick
+        Dim i As Integer
+        i = datagridDatabase.CurrentRow.Index
+        getData(datagridDatabase.Item(1, i).Value)
+    End Sub
+
+
+
+    Private Sub Guna2Button4_Click(sender As Object, e As EventArgs)
+        aktifteks()
+        hapusteks()
+    End Sub
+
+    Private Sub homeBtn_CheckedChanged(sender As Object, e As EventArgs) Handles homeBtn.CheckedChanged
+        If homeBtn.Checked = True Then
+            homePanel.BringToFront()
+        End If
+    End Sub
+
+    Private Sub databaseBtn_CheckedChanged(sender As Object, e As EventArgs) Handles databaseBtn.CheckedChanged
+        If databaseBtn.Checked = True Then
+            databaseditPanel.BringToFront()
+        End If
+    End Sub
+
+    Private Sub Guna2Button3_Click(sender As Object, e As EventArgs) Handles exitBtn.Click
+        End
+    End Sub
+
+    Private Sub SaveBtn_Click(sender As Object, e As EventArgs)
+        Try
+            Dim str As String
+            str = "insert into product values ('" & nameTextBox.Text & "','" & codeTextBox.Text & "','" & categoryTextBox.Text & "','" & priceTextBox.Text & "')"
+
+            cmd = New MySqlCommand(str, conn)
+
+            cmd.ExecuteNonQuery()
+            MessageBox.Show("Data Tersimpan")
+
+        Catch ex As Exception
+            MessageBox.Show("Data gagal Tersimpan")
+        End Try
+        hapusteks()
+        tampilkanData()
+    End Sub
+
+    Private Sub DeleteBtn_Click(sender As Object, e As EventArgs)
+        Call koneksidatabase()
+
+        If codeTextBox.Text = "" Then
+            MsgBox("Mohon pilih data terlebih dahulu")
+            Exit Sub
+        Else
+            Dim hapusdata As String = "delete from product where productCode = '" & codeTextBox.Text & "'"
+            cmd = New MySqlCommand(hapusdata, conn)
+            cmd.ExecuteNonQuery()
+            MsgBox("Data berhasil dihapus")
+            tampilkanData()
+        End If
+    End Sub
+
+    Private Sub SearchBtn_Click(sender As Object, e As EventArgs) Handles searchBtn.Click
+        koneksidatabase()
+
+        cmd = New MySqlCommand("select * from product where productName like '%" & searchTextBox.Text & "%'", conn)
+
+        da = New MySqlDataAdapter
+        da.SelectCommand = cmd
+        dt = New DataTable
+        ds = New DataSet
+        da.Fill(ds, "c")
+        datagridDatabase.DataSource = ds
+        datagridDatabase.DataMember = "c"
+        datagrid()
+    End Sub
+
+    Private Sub SaveBtn_Click_1(sender As Object, e As EventArgs) Handles saveBtn.Click
+        Try
+            Dim str As String
+            str = "insert into product values ('" & nameTextBox.Text & "','" & codeTextBox.Text & "','" & categoryTextBox.Text & "','" & priceTextBox.Text & "')"
+
+            cmd = New MySqlCommand(str, conn)
+
+            cmd.ExecuteNonQuery()
+            MessageBox.Show("Data Tersimpan")
+
+        Catch ex As Exception
+            MessageBox.Show("Data gagal Tersimpan")
+        End Try
+        tampilkanData()
+        hapusteks()
+    End Sub
+
+    Private Sub DeleteBtn_Click_1(sender As Object, e As EventArgs) Handles deleteBtn.Click
+        Call koneksidatabase()
+
+        If deleteTxtBox.Text = "" Then
+            MsgBox("Mohon pilih data terlebih dahulu")
+            Exit Sub
+        Else
+            Dim hapusdata As String = "delete from product where productCode = '" & deleteTxtBox.Text & "'"
+            cmd = New MySqlCommand(hapusdata, conn)
+            cmd.ExecuteNonQuery()
+            MsgBox("Data berhasil dihapus")
+            deleteAction.BringToFront()
+            deleteTxtBox.Visible = False
+            tampilkanData()
+        End If
+    End Sub
+
+    Private Sub DeleteAction_Click(sender As Object, e As EventArgs) Handles deleteAction.Click
+        deleteBtn.BringToFront()
+        deleteTxtBox.Visible = True
+    End Sub
+
+    Private Sub EditBtn_Click(sender As Object, e As EventArgs) Handles editBtn.Click
+        Call koneksidatabase()
+        Dim Edit As String = "update product set productName='" & nameTextBox.Text & "',productCategory = '" & categoryTextBox.Text & "', productPrice='" & priceTextBox.Text & "' where productCode='" & codeTextBox.Text & "'"
+        da = New MySqlDataAdapter(cmd)
+        cmd = New MySqlCommand(Edit, conn)
+        cmd.ExecuteNonQuery()
+        MsgBox("Data Berhasil Diganti")
+        tampilkanData()
+        hapusteks()
+    End Sub
+
+    Private Sub Guna2Button1_Click(sender As Object, e As EventArgs) Handles Guna2Button1.Click
+        tampilkanData()
+        hapusteks()
+    End Sub
+
+    Private Sub SearchBtnHome_Click(sender As Object, e As EventArgs) Handles searchBtnHome.Click
+        koneksidatabase()
+
+        cmd = New MySqlCommand("select * from product where productName like '%" & searchTxtHome.Text & "%'", conn)
+
+        da = New MySqlDataAdapter
+        da.SelectCommand = cmd
+        dt = New DataTable
+        ds = New DataSet
+        da.Fill(ds, "c")
+        datagridHome.DataSource = ds
+        datagridHome.DataMember = "c"
+        datagrid()
+    End Sub
+
+    Private Sub searchHomeBtn_Click(sender As Object, e As EventArgs) Handles searchHomeBtn.Click
+        searchTxtHome.Clear()
+        tampilkanData()
+    End Sub
+
+    Private Sub SearchResetBtn_Click(sender As Object, e As EventArgs) Handles searchResetBtn.Click
+        searchTextBox.Clear()
+        tampilkanData()
+    End Sub
+End Class
