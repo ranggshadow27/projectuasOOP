@@ -181,18 +181,29 @@ Public Class Form1
     End Sub
 
     Private Sub SaveBtn_Click_1(sender As Object, e As EventArgs) Handles saveBtn.Click
-        Try
-            Dim str As String
-            str = "insert into product values ('" & nameTextBox.Text & "','" & codeTextBox.Text & "','" & categoryTextBox.Text & "','" & priceTextBox.Text & "')"
 
-            cmd = New MySqlCommand(str, conn)
+        If nameTextBox.Text = "" Then
+            MsgBox("Mohon isi nama produk terlebih dahulu")
+        ElseIf codeTextBox.Text = "" Then
+            MsgBox("Mohon isi kode produk terlebih dahulu")
+        ElseIf categoryTextBox.Text = "" Then
+            MsgBox("Mohon pilih kategori terlebih dahulu")
+        ElseIf priceTextBox.Text = "" Then
+            MsgBox("Mohon isi harga terlebih dahulu")
+        Else
+            Try
+                Dim str As String
+                str = "insert into product values ('" & nameTextBox.Text & "','" & codeTextBox.Text & "','" & categoryTextBox.Text & "','" & priceTextBox.Text & "')"
 
-            cmd.ExecuteNonQuery()
-            MessageBox.Show("Data Tersimpan")
+                cmd = New MySqlCommand(str, conn)
 
-        Catch ex As Exception
-            MessageBox.Show("Data gagal Tersimpan")
-        End Try
+                cmd.ExecuteNonQuery()
+                MessageBox.Show("Data Tersimpan")
+
+            Catch ex As Exception
+                MessageBox.Show("Data gagal Tersimpan")
+            End Try
+        End If
         tampilkanData()
         hapusteks()
     End Sub
@@ -201,7 +212,7 @@ Public Class Form1
         Call koneksidatabase()
 
         If deleteTxtBox.Text = "" Then
-            MsgBox("Mohon pilih data terlebih dahulu")
+            MsgBox("Mohon isi kode data yang ingin dihapus")
             Exit Sub
         Else
             Dim hapusdata As String = "delete from product where productCode = '" & deleteTxtBox.Text & "'"
@@ -209,13 +220,17 @@ Public Class Form1
             cmd.ExecuteNonQuery()
             MsgBox("Data berhasil dihapus")
             deleteAction.BringToFront()
+            editBtn.BringToFront()
             deleteTxtBox.Visible = False
+            deleteTxtBox.Clear()
             tampilkanData()
+            hapusteks()
         End If
     End Sub
 
     Private Sub DeleteAction_Click(sender As Object, e As EventArgs) Handles deleteAction.Click
         deleteBtn.BringToFront()
+        backBtn.BringToFront()
         deleteTxtBox.Visible = True
     End Sub
 
@@ -232,6 +247,7 @@ Public Class Form1
 
     Private Sub Guna2Button1_Click(sender As Object, e As EventArgs) Handles Guna2Button1.Click
         tampilkanData()
+        datagrid()
         hapusteks()
     End Sub
 
@@ -253,10 +269,18 @@ Public Class Form1
     Private Sub searchHomeBtn_Click(sender As Object, e As EventArgs) Handles searchHomeBtn.Click
         searchTxtHome.Clear()
         tampilkanData()
+        datagrid()
     End Sub
 
     Private Sub SearchResetBtn_Click(sender As Object, e As EventArgs) Handles searchResetBtn.Click
         searchTextBox.Clear()
         tampilkanData()
+        datagrid()
+    End Sub
+
+    Private Sub BackBtn_Click(sender As Object, e As EventArgs) Handles backBtn.Click
+        editBtn.BringToFront()
+        deleteAction.BringToFront()
+        deleteTxtBox.Visible = False
     End Sub
 End Class
